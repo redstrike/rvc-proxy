@@ -14,15 +14,23 @@ understanding how to communicate with RV-C devices.
 Prerequisites
 -------------
 
+Required:
+
 * A computer with a canbus network card configured on interface `can0`.
-* An [MQTT](http://mqtt.org/) message broker. We recommend the
-  [Mosquitto](https://mosquitto.org/) message broker.
+
+Optional:
+
+* The [Node-RED](https://nodered.org/) programming environment installed
+  along with the [Node-RED Dashboard](https://github.com/node-red/node-red-dashboard)
+  package for building user interfaces.
+* An [MQTT](http://mqtt.org/) message broker for passing messages
+  between programs. We recommend the [Mosquitto](https://mosquitto.org/) message broker.
 
 Programs
 --------
 
 Our RV-C programs are being added individually after reviewing each.
-More will be added over the next few weeks.
+More are on the way.
 
 ### rvc_monitor.pl
 
@@ -95,4 +103,27 @@ Brightness 100%
 Command On
 Duration 20s
 ```
+
+User Interface
+--------------
+
+The `flows_rvcproxy.json` file inside the `node-red` directory contains
+a set of Node-RED flows for creating a dashboard to control lights,
+vents, fans, thermostats, and more. Please see the [documentation for
+Node-RED](https://nodered.org/docs/) for instructions to load and work
+with this file.
+
+The flows utilize several Node-RED modules which must be installed
+first. At the very least, the following are required:
+
+* node-red-dashboard
+* node-red-contrib-file-function
+
+The `file-function` module loads javascript code snippets from files,
+rather than the traditional approach of embedding the javascript code
+inside the flows file.
+
+These javascript files will be added to this repository soon.
+
+![Node-RED Flows](images/flows.jpg "Node-RED Flows")
 
