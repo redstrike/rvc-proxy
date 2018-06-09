@@ -104,6 +104,28 @@ Command On
 Duration 20s
 ```
 
+### window_shade.pl
+
+Sends either `WINDOW_SHADE_COMMAND` messages (`1FEDF`) or
+`DC_DIMMER_COMMAND_2` messages (`1FEDB`) to control both window shades
+and outdoor awnings. In Tiffin motorhomes, most window shades and
+awnings are controlled via the `WINDOW_SHADE_COMMAND`, but some some
+shades use the `DC_DIMMER_COMMAND_2` instead.
+
+To simplify the interface, a single meta ID is used in the script to
+control each shade set or awning, abstracting away the need to know
+which RV-C command to send. For example, ID 1 sends
+`DC_DIMMER_COMMAND_2` messages to dimmers 77 through 80 to control the
+up and down motion of the day and night shades next to the passenger
+side dinette.
+
+In addition, different model years use slightly different versions of
+the RV-C commands, so the model year must be supplied on the command
+line.
+
+Example usage: `window_shade.pl 2018 night up 17` will generate an RV-C
+command to roll up the entry door night shade.
+
 User Interface
 --------------
 
