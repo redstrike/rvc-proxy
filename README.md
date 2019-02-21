@@ -26,35 +26,65 @@ Optional:
 * An [MQTT](http://mqtt.org/) message broker for passing messages
   between programs. We recommend the [Mosquitto](https://mosquitto.org/) message broker.
 
-Programs
---------
+Receiving RV-C Messages from CANbus
+-----------------------------------
 
-Our RV-C programs are being added individually after reviewing each.
-More are on the way.
-
-### rvc_monitor.pl
+### rvc2mqtt.pl
 
 Listens for RV-C messages on a canbus network, decodes them, and
-publishes summary information to an MQTT message broker on the local
-host.
+publishes summary information in JSON format to an MQTT message broker
+on the local host.
+
+This script loads `rvc-spec.yml`, a machine readable version of the RV-C
+specification in [YAML](https://yaml.org/spec/1.2/spec.html) format.
+The file describes how to decode each byte and bit of the data stream
+into keys and values. Note: There are are few RV-C DGN decoders
+remaining to be added to the `rvc-spec.yml` file.
+
+For example, the `rvc-spec.yml` file contains the following decoder
+information for RV-C datagroup `1FF9C`, based on section 6.17.11 of the
+RV-C specification:
+
+```yaml
+1FF9C:
+  name: THERMOSTAT_AMBIENT_STATUS
+  parameters:
+    - byte: 0
+      name: instance
+      type: uint8
+    - byte: 1-2
+      name: ambient temp
+      type: uint16
+      unit: Deg C
+```
+
+When the `rvc2mqtt.pl` script detects a `1FF9C` data packet on the canbus,
+it uses the above YAML to decode the packet and publish the following JSON
+to the MQTT bus:
+
+```json
+{
+  "dgn":"1FF9C",
+  "name":"THERMOSTAT_AMBIENT_STATUS",
+  "instance":1,
+  "ambient temp":27.7,
+  "data":"0197250000000000",
+  "timestamp":"1550782537.136680"
+}
+```
+
+### rvc_monitor.pl - DEPRECATED
+
+The original version of the RV-C decoder. It has since been replaced
+with rvc2mqtt.pl which is more reliable and scalable.
 
 Most decoders (e.g. DC_DIMMER_STATUS_3) publish to MQTT and print to
 STDOUT an ordered, comma-separated list of values. Newer decoders return
 a JSON object containing key-value pairs to eliminate the requirement to
 know the order of returned values.
 
-Sample output:
-```
-2018-03-21 19:34:03.85345,93,1FFDC,GENERATOR_STATUS_1_JSON,{"battvolt":"n/a","load":"n/a","runtime":7,"status":"Stopped"},005E010000FFFFFF
-2018-03-21 19:34:03.85933,42,1FFCA,CHARGER_AC_STATUS_1_JSON,1,{"freq":"60.1","gndcur":3,"opengnd":3,"openneut":3,"revpol":3,"rmsc":"n/a","rmsv":"118.0"},013809FFFF0D1EFF
-2018-03-21 19:34:03.89226,93,1FFFF,DATE_TIME_STATUS,2000-06-03 14:32:56,n/a,Sunday,000603010E2038FF
-2018-03-21 19:34:03.90309,98,1FFBE,AC_LOAD_COMMAND,219,n/a,0.0,Automatic,none,n/a,DBFF006000000000
-2018-03-21 19:34:03.90606,93,1FFBF,AC_LOAD_STATUS_JSON,219,{"delay":0,"demandcur":11,"group":"n/a","instance":219,"level":"0.0","mode":"Automatic","presentcur":"n/a","priority":"n/a","variable":"0"},DBFF0060000BFFFF
-2018-03-21 19:34:03.95133,42,1FFD7,INVERTER_AC_STATUS_1_JSON,65,{"freq":"60.1","gndcur":3,"opengnd":3,"openneut":3,"revpol":3,"rmsc":"n/a","rmsv":"118.0"},413809FFFF0D1EFF
-2018-03-21 19:34:03.99334,42,1FFFD,DC_SOURCE_STATUS_1,House,12.90,0.0,0164020100943577
-2018-03-21 19:34:04.01533,42,1FEBD,INVERTER_TEMPERATURE_STATUS,1,98.6,98.6,01C026C026FFFFFF
-2018-03-21 19:34:04.05233,42,1FFD7,INVERTER_AC_STATUS_1_JSON,65,{"freq":"60.1","gndcur":3,"opengnd":3,"openneut":3,"revpol":3,"rmsc":"n/a","rmsv":"118.0"},413809FFFF0D1EFF
-```
+Sending RV-C Messages to CANbus
+-----------------------------------
 
 ### dc_dimmer.pl
 
@@ -139,13 +169,12 @@ The flows utilize several Node-RED modules which must be installed
 first. At the very least, the following are required:
 
 * node-red-dashboard
-* node-red-contrib-file-function
+* node-red-contrib-file-function-ext
 
-The `file-function` module loads javascript code snippets from files,
-rather than the traditional approach of embedding the javascript code
-inside the flows file.
-
-These javascript files will be added to this repository soon.
+The `file-function-ext` module loads javascript code snippets from
+files, rather than the traditional approach of embedding the javascript
+code inside the Node-RED flows file. Several sample javascript files
+have been added to this repository.
 
 ![Node-RED Flows](images/flows.jpg "Node-RED Flows")
 
