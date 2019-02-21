@@ -38,8 +38,14 @@ on the local host.
 This script loads `rvc-spec.yml`, a machine readable version of the RV-C
 specification in [YAML](https://yaml.org/spec/1.2/spec.html) format.
 The file describes how to decode each byte and bit of the data stream
-into keys and values. Note: There are are few RV-C DGN decoders
-remaining to be added to the `rvc-spec.yml` file.
+into keys and values.
+
+_Note 1: There are are few RV-C DGN decoders
+remaining to be added to the `rvc-spec.yml` file._
+
+_Note 2: The RV-C spec PDF is riddled with errors and inaccuracies.
+Where possible, comments have been included in the `rvc-spec.yml` to
+explain the discrepencies._
 
 For example, the `rvc-spec.yml` file contains the following decoder
 information for RV-C datagroup `1FF9C`, based on section 6.17.11 of the

@@ -84,30 +84,39 @@
     - byte: 1
       name: month
       type: uint8
-      unit: month
     - byte: 2
       name: date
       type: uint8
-      unit: day
     - byte: 3
       name: day of week
       type: uint8
+      values:
+        1: Sunday
+        2: Monday
+        3: Tuesday
+        4: Wednesday
+        5: Thursday
+        6: Friday
+        7: Saturday
     - byte: 4
       name: hour
       type: uint8
-      unit: h
     - byte: 5
       name: minute
       type: uint8
-      unit: min
     - byte: 6
       name: second
       type: uint8
-      unit: s
     - byte: 7
       name: time zone
       type: uint8
-      unit: h
+      values:
+        0: Greenwich Mean Time
+        4: Eastern Daylight Time
+        5: Eastern Standard Time
+        7: Pacific Daylight Time
+        8: Pacific Standard Time
+        22: Central European Summer Time
 
 1FFFE:
   name: SET_DATE_TIME_COMMAND
@@ -1383,6 +1392,7 @@
   name: INVERTER_ACFAULT_CONFIGURATION_COMMAND_2
   alias: Z0005
 
+# The RV-C spec incorrectly lists load sense as bits 2-4.
 1FFD4:
   name: INVERTER_STATUS
   parameters:
@@ -1407,7 +1417,7 @@
         00: no sensor in use
         01: sensor present and active
     - byte: 2
-      bit: 2-4
+      bit: 2-3
       name: load sense enabled
       type: bit2
       values:
@@ -1476,7 +1486,7 @@
     - byte: 3-4
       name: load sense interval
       type: uint16
-      unit: s
+      unit: sec
     - byte: 5-6
       name: dc source shutdown voltage minimum
       type: uint16
@@ -1531,7 +1541,7 @@
     - byte: 1-2
       name: dc source shutdown delay
       type: uint16
-      unit: s
+      unit: sec
     - byte: 3
       name: stack mode
       type: uint8
@@ -1554,7 +1564,7 @@
     - byte: 3-4
       name: load sense interval
       type: uint16
-      unit: s
+      unit: sec
     - byte: 5-6
       name: dc source shutdown voltage minimum
       type: uint16
@@ -1588,7 +1598,7 @@
     - byte: 1-2
       name: dc source shutdown delay
       type: uint16
-      unit: s
+      unit: sec
     - byte: 3
       name: stack mode
       type: uint8
@@ -1620,7 +1630,7 @@
       name: dc voltage
       type: uint16
       unit: v
-    - byte: 1-2
+    - byte: 3-4
       name: dc amperage
       type: uint16
       unit: a
@@ -2177,7 +2187,6 @@
     - byte: 4
       name: delay
       type: uint8
-      unit: s
     - byte: 5
       name: demanded current
       type: uint8
@@ -2450,13 +2459,11 @@
     - byte: 5
       bit: 0-3
       name: on duration
-      type: bit4
-      unit: s
+      type: uint8
     - byte: 5
       bit: 4-7
       name: off duration
-      type: bit4
-      unit: s
+      type: uint8
 
 1FFBA:
   name: DC_DIMMER_STATUS_2
@@ -2558,7 +2565,6 @@
     - byte: 4
       name: delay/duration
       type: uint8
-      unit: s
     - byte: 5
       name: last command
       type: uint8
@@ -2670,7 +2676,6 @@
     - byte: 4
       name: delay/duration
       type: uint8
-      unit: s
     - byte: 5
       bit: 0-1
       name: led1 status
@@ -2718,7 +2723,7 @@
     - byte: 4
       name: duration
       type: uint8
-      unit: s
+      unit: sec
     - byte: 6
       name: function
       type: uint8
@@ -3448,7 +3453,6 @@ Z0004:
     - byte: 5
       name: qualification time
       type: uint8
-      unit: s
     - byte: 6
       bit: 0-1
       name: bypass mode

@@ -107,7 +107,6 @@ sub decode() {
 
   # Loop through each parameter for the DGN and decode it.
   my $parameter_count = 0;
-  #foreach my $parameter (@{$decoder->{parameters}}) {
   foreach my $parameter (@parameters) {
     my $name = $parameter->{name};
     my $type = $parameter->{type} // 'uint';
@@ -138,10 +137,14 @@ sub decode() {
 
     $result{$name} = $value;
 
+    # Also provide temperatures in ºF
+    if (defined $unit && lc($unit) eq 'deg c') {
+      $result{$name . " F"} = tempC2F($value);
+    }
+
     # Decode value definitions, if provided.
-    my $value_def = $value;
     if ($values) {
-      $value_def = 'Undefined';
+      my $value_def = 'undefined';
       $value_def = $values->{$value} if ($values->{$value});
       $result{"$name definition"} = $value_def;
     }
@@ -169,14 +172,10 @@ sub get_bytes() {
 
   my ($start_byte, $end_byte) = split(/-/, $byterange);
   $end_byte = $start_byte if !defined $end_byte;
-
   my $sub_bytes = substr($data, $start_byte * 2, ($end_byte - $start_byte + 1) * 2);
-  $bytes = join '', reverse split /(..)/, $sub_bytes;
 
-  # Alternate method using for loop:
-  #for (my $i = $end_byte; $i >= $start_byte; $i--) {
-    #$bytes .= substr($data, $i * 2, 2);
-  #}
+  # Swap the order of bytes
+  $bytes = join '', reverse split /(..)/, $sub_bytes;
 
   return $bytes;
 }
@@ -206,6 +205,26 @@ sub hex2bin() {
 }
 
 
+# Convert a temperature from C to F, rounded to tenths of a degree.
+sub tempC2F() {
+	my ($tempC) = @_;
+	return int((($tempC * 9 / 5) + 32) * 10) / 10;
+}
+
+
+# Round numbers (from Math::Round)
+sub nearest {
+ my $targ = abs(shift);
+ my $half = 0.50000000000008;
+ my @res  = map {
+  if ($_ >= 0) { $targ * int(($_ + $half * $targ) / $targ); }
+     else { $targ * POSIX::ceil(($_ - $half * $targ) / $targ); }
+ } @_;
+
+ return $res[0];
+}
+
+
 # For a given unit (e.g. "V") and datatype (e.g. "uint16"), compute and
 # return the actual value based on RV-C table 5.3.
 sub convert_unit() {
@@ -213,7 +232,7 @@ sub convert_unit() {
   my $unit = shift(@_);
   my $type = shift(@_);
 
-  my $new_value = 'n/a';
+  my $new_value = $value;
 
   switch (lc($unit)) {
     case 'pct' {
@@ -222,20 +241,36 @@ sub convert_unit() {
     case 'deg c' {
       switch ($type) {
         case 'uint8'  { $new_value = $value - 40 unless ($value == 255) }
-        case 'uint16' { $new_value = int(10 * ($value * 0.03125 - 273)) / 10 unless ($value == 65535) }
+        case 'uint16' { $new_value = nearest(.1, $value * 0.03125 - 273) unless ($value == 65535) }
       }
     }
     case "v" {
       switch ($type) {
         case 'uint8'  { $new_value = $value unless ($value == 255) }
-        case 'uint16' { $new_value = int(10 * $value * 0.05) / 10 unless ($value == 65535) }
+        case 'uint16' { $new_value = nearest(.1, $value * 0.05) unless ($value == 65535) }
+        #case 'uint16' { $new_value = int(10 * $value * 0.05) / 10 unless ($value == 65535) }
       }
     }
     case "a" {
       switch ($type) {
         case 'uint8'  { $new_value = $value }
-        case 'uint16' { $new_value = int(10 * ($value * 0.05 - 1600)) / 10 unless ($value == 255) }
-        case 'uint32' { $new_value = int(100 * ($value * 0.001 - 2000000)) / 100 unless $value == 4294967295 }
+        case 'uint16' { $new_value = nearest(.1, $value * 0.05 - 1600) unless ($value == 255) }
+        case 'uint32' { $new_value = nearest(.01, $value * 0.001 - 2000000) unless $value == 4294967295 }
+      }
+    }
+    case "hz" {
+      switch ($type) {
+        case 'uint8'  { $new_value = $value }
+        case 'uint16' { $new_value = nearest(.1, $value / 128) }
+      }
+    }
+    case "sec" {
+      switch ($type) {
+        case 'uint8' {
+          # If duration is between 240 and 251, it's measured in minutes starting at 5 minutes.
+          $new_value = (($value - 240) + 4 ) * 60 if ($value > 240 && $value < 251);
+        }
+        case 'uint16' { $new_value = $value * 2 }
       }
     }
     case "bitmap" {
