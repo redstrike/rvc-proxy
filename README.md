@@ -92,6 +92,45 @@ Sends a `DC_DIMMER_COMMAND_2` message (`1FEDB`) to the CAN bus. This is
 typically used to control lights, but can also be used to turn other
 items on and off, such as a water pump or fan.
 
+### dc_dimmer_pair.pl
+
+Sends a combination of `DC_DIMMER_COMMAND_2` messages (`1FEDB`) to
+control various devices which have two instances associated with them.
+Over time, this script can replace `ceiling_fan.pl`, `vent_fan.pl`, and
+part of `window_shade.pl`).
+
+For example, opening and closing a ceiling vent lid on a Tiffin
+motorhome requires a pair of reversing commands with a duration value.
+For example, to open the galley vent lid, the following sequence is
+sent:
+
+```
+Instance 27
+Brightness 0
+Command Off
+Duration 0
+
+Instance 26
+Brightness 100%
+Command On
+Duration 20s
+```
+
+To close the vent lid, the following sequence is sent (note the
+instances are reversed):
+
+```
+Instance 26
+Brightness 0
+Command Off
+Duration 0
+
+Instance 27
+Brightness 100%
+Command On
+Duration 20s
+```
+
 ### ceiling_fan.pl
 
 Sends a combination of `DC_DIMMER_COMMAND_2` messages (`1FEDB`) to
@@ -106,33 +145,7 @@ Turning fans on and off is handled via a single command, just like
 turning a light on or off.
 
 Opening and closing a vent lid requires a pair of reversing commands
-with a duration value. For example, to open the galley vent lid on a
-2018 Tiffin, the following sequence is sent:
-
-```
-Instance 27
-Brightness 0
-Command Off
-Duration 0
-
-Instance 26
-Brightness 100%
-Command On
-Duration 20s
-```
-
-To close the galley vent lid, the following sequence is sent:
-```
-Instance 26
-Brightness 0
-Command Off
-Duration 0
-
-Instance 27
-Brightness 100%
-Command On
-Duration 20s
-```
+with a duration value.
 
 ### window_shade.pl
 
