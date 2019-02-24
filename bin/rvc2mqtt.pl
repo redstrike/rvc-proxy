@@ -15,10 +15,17 @@
 # limitations under the License.
 
 use strict;
+use warnings;
 use Net::MQTT::Simple "localhost";
+use Getopt::Long qw(GetOptions);
 use YAML::Tiny;
 use JSON;
 use Switch;
+
+my $debug;
+GetOptions(
+  'debug' => \$debug,
+) or usage();
 
 my $yaml = YAML::Tiny->read('./rvc-spec.yml');
 our $decoders = $yaml->[0];
@@ -70,7 +77,7 @@ sub processPacket {
       my $result_json = JSON->new->utf8->canonical->encode(\%result);
       my $topic = "RVC/$result{name}";
       $topic .= '/' . $result{instance} if (defined($result{instance}));
-      publish $topic => $result_json;
+      publish $topic => $result_json if (!$debug);
       printf("%4d-%02d-%02d %02d:%02d:%02d.%05d %s %s %s %s\n", $year, $mon, $mday, $hour, $min, $sec, $partsec, $src, $data, $topic, $result_json);
     }
 	}
@@ -236,25 +243,28 @@ sub convert_unit() {
 
   switch (lc($unit)) {
     case 'pct' {
-      $new_value = $value/2 if ($value != 255);
+      $new_value = 'n/a';
+      $new_value = $value/2 unless ($value == 255);
     }
     case 'deg c' {
+      $new_value = 'n/a';
       switch ($type) {
         case 'uint8'  { $new_value = $value - 40 unless ($value == 255) }
         case 'uint16' { $new_value = nearest(.1, $value * 0.03125 - 273) unless ($value == 65535) }
       }
     }
     case "v" {
+      $new_value = 'n/a';
       switch ($type) {
         case 'uint8'  { $new_value = $value unless ($value == 255) }
         case 'uint16' { $new_value = nearest(.1, $value * 0.05) unless ($value == 65535) }
-        #case 'uint16' { $new_value = int(10 * $value * 0.05) / 10 unless ($value == 65535) }
       }
     }
     case "a" {
+      $new_value = 'n/a';
       switch ($type) {
         case 'uint8'  { $new_value = $value }
-        case 'uint16' { $new_value = nearest(.1, $value * 0.05 - 1600) unless ($value == 255) }
+        case 'uint16' { $new_value = nearest(.1, $value * 0.05 - 1600) unless ($value == 65535) }
         case 'uint32' { $new_value = nearest(.01, $value * 0.001 - 2000000) unless $value == 4294967295 }
       }
     }
@@ -279,4 +289,16 @@ sub convert_unit() {
   }
 
   return $new_value;
+}
+
+# Print out simple command line usage.
+sub usage {
+  print qq{
+    Usage:
+
+    --debug               print results but do not publish to mqtt
+  };
+  print "\n";
+
+  exit(1);
 }
