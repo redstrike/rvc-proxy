@@ -30,6 +30,9 @@ GetOptions(
 my $yaml = YAML::Tiny->read('./rvc-spec.yml');
 our $decoders = $yaml->[0];
 
+my $api_version = $decoders->{'API_VERSION'};
+retain 'RVC/API_VERSION' => $api_version;
+
 open FILE,'candump -ta can0 |' or die("Cannot start candump " . $! ."\n");
 
 # candump output looks like:

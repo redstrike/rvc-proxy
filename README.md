@@ -40,12 +40,16 @@ specification in [YAML](https://yaml.org/spec/1.2/spec.html) format.
 The file describes how to decode each byte and bit of the data stream
 into keys and values.
 
-_Note 1: There are are few RV-C DGN decoders
-remaining to be added to the `rvc-spec.yml` file._
+_Note 1: There are are few RV-C DGN decoders remaining to be added to
+the `rvc-spec.yml` file._
 
-_Note 2: The RV-C spec PDF is riddled with errors and inaccuracies.
-Where possible, comments have been included in the `rvc-spec.yml` to
-explain the discrepencies._
+_Note 2: The RV-C spec PDF has errors and inaccuracies. Where possible,
+comments have been included in the `rvc-spec.yml` to explain the
+discrepencies._
+
+_Note 3: The `rvc-spec.yml` file is versioned, so that any changes to
+the mqtt output can be tracked and downstream scripts can be updated.
+Please review the [decoder API version log](rvc2mqtt-api-versions.md)._
 
 For example, the `rvc-spec.yml` file contains the following decoder
 information for RV-C datagroup `1FF9C`, based on section 6.17.11 of the

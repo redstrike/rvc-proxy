@@ -11,7 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 ---
+
+# This file is versioned. Any changes here, even as small as changing
+# a name from lower case to upper case, can have an impact on tools
+# that have been written to use the mqtt output generated from this
+# spec file.
+API_VERSION: 1
+
 17F00:
   name: GENERAL_RESET
   parameters:
